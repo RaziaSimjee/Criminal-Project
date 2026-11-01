@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/crimeTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Crime_title"
+        android:textSize="28sp"/>
+
+    <TextView
+        android:id="@+id/crimeDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tue Feb 01 10:53:08 EST 2026"
+        android:textSize="20sp"/>
+
+
+
+</LinearLayout>
