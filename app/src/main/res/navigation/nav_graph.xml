@@ -17,9 +17,22 @@
     <fragment
         android:id="@+id/crimeDetailFragment"
         android:name="com.example.criminalproject.CrimeDetailFragment"
-        android:label="CrimeDetailFragment" >
+        android:label="CrimeDetailFragment"
+        tools:layout="@layout/fragment_crime_detail">
         <argument
             android:name="crimeId"
             app:argType="java.util.UUID" />
+        <action
+            android:id="@+id/select_date"
+            app:destination="@id/datePickerFragment" />
     </fragment>
+    <dialog
+        android:id="@+id/datePickerFragment"
+        android:name="com.example.criminalproject.DatePickerFragment"
+        android:label="DatePickerFragment"
+        >
+        <argument
+            android:name="crimeDate"
+            app:argType="java.util.Date" />
+    </dialog>
 </navigation>
