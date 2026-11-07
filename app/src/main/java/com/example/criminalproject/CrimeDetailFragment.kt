@@ -15,8 +15,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.core.os.BundleCompat
 import androidx.core.view.MenuProvider
+import androidx.core.view.doOnLayout
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
@@ -30,6 +32,7 @@ import androidx.navigation.fragment.navArgs
 import com.example.criminalproject.Model.Crime
 import com.example.criminalproject.databinding.FragmentCrimeDetailBinding
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.DateFormat
 import java.util.Date
 import java.util.UUID
@@ -38,6 +41,8 @@ import kotlin.time.Duration.Companion.parse
 class CrimeDetailFragment : Fragment() {
 
     private lateinit var crime: Crime
+
+    private var photoName: String? = null
 
     private val DATE_PATTERN = "EEE, MMM dd, yyyy"
     private var _binding: FragmentCrimeDetailBinding? = null
@@ -55,6 +60,15 @@ class CrimeDetailFragment : Fragment() {
         }
     }
 
+    private val takePhoto =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { didTakePhoto: Boolean ->
+            if (didTakePhoto && photoName != null) {
+                crimeDetailViewModel.updateCrime { oldCrime ->
+                    oldCrime.copy(photoFileName = photoName)
+                }
+            }
+        }
+
     private fun updateUI(crime: Crime) {
         binding.apply {
             if (crimeTitle.text.toString() != crime.title) {
@@ -64,8 +78,11 @@ class CrimeDetailFragment : Fragment() {
             crimeDate.setOnClickListener {
                 findNavController().navigate(
                     CrimeDetailFragmentDirections.selectDate(crime.date)
+
                 )
+
             }
+            updatePhoto(crime.photoFileName)
             crimeSolved.isChecked = crime.isSolved
 
             crimeSuspect.setOnClickListener {
@@ -87,6 +104,21 @@ class CrimeDetailFragment : Fragment() {
                 getString(R.string.crime_suspect_text)
             }
 
+            crimeCamera.setOnClickListener {
+                photoName = "IMG_${Date()}.JPG"
+                val photoFile = File(requireContext().applicationContext.filesDir, photoName)
+                val photoUri = FileProvider.getUriForFile(
+                    requireContext(),
+                    "com.example.criminalproject.fileprovider",
+                    photoFile
+                )
+                takePhoto.launch(photoUri)
+            }
+            val captureImageIntent = takePhoto.contract.createIntent(
+                requireContext(),
+                Uri.parse("")
+            )
+            crimeCamera.isEnabled = canResolveIntent(captureImageIntent)
 
         }
     }
@@ -127,8 +159,31 @@ class CrimeDetailFragment : Fragment() {
     private fun canResolveIntent(intent: Intent): Boolean {
 
         val packetManager: PackageManager = requireActivity().packageManager
-        val resolvedActivity: ResolveInfo? = packetManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        val resolvedActivity: ResolveInfo? =
+            packetManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
         return resolvedActivity != null
+    }
+
+    private fun updatePhoto(photoFileName: String?) {
+        if (binding.crimePhoto.tag != photoFileName) {
+            val photoFile = photoFileName?.let {
+                File(requireContext().applicationContext.filesDir, it)
+            }
+            if (photoFile?.exists() == true) {
+                binding.crimePhoto.doOnLayout { measuredView ->
+                    val scaledBitmap = getScaledBitmap(
+                        photoFile.path,
+                        measuredView.width,
+                        measuredView.height
+                    )
+                    binding.crimePhoto.setImageBitmap(scaledBitmap)
+                    binding.crimePhoto.tag = photoFileName
+                }
+            } else {
+                binding.crimePhoto.setImageBitmap(null)
+                binding.crimePhoto.tag = null
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

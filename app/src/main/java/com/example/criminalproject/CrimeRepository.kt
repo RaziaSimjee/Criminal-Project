@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.example.criminalproject.Model.Crime
 import com.example.criminalproject.database.CrimeDatabase
 import com.example.criminalproject.database.migration_1_2
+import com.example.criminalproject.database.migration_2_3
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
@@ -20,7 +21,7 @@ class CrimeRepository private constructor(
 
     private val database: CrimeDatabase = Room.databaseBuilder(
         context.applicationContext, CrimeDatabase::class.java, DATABASE_NAME
-    ).addMigrations(migration_1_2).build()
+    ).addMigrations(migration_1_2, migration_2_3).build()
 
     suspend fun getCrimes(): Flow<List<Crime>> = database.crimeDao().getCrimes()
     suspend fun getCrime(id: UUID): Crime = database.crimeDao().getCrime(id)
